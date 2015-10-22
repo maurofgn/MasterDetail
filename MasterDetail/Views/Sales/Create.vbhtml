@@ -9,86 +9,122 @@ End Code
 
 @section Scripts
 
-@*This is for jquery*@
-@*<script src="../../Scripts/jquery-1.8.2.js" type="text/javascript"></script>*@ 
 
 @*This is for jquery UI, for Calender control*@
-<script src="../../Scripts/jquery-ui-1.8.24.js" type="text/javascript"></script>
+@Scripts.Render("~/bundles/jqueryui")
 
 @*This is for JSON*@
-<script src="../../Scripts/json2.js" type="text/javascript"></script>
-
-@*These are for DataTables*@
-@*<script src="~/Scripts/DataTables-1.8.1/media/js/jquery.dataTables.js" type="text/javascript"></script>*@
-<script src="../../Scripts/DataTables-1.8.1/media/js/jquery.dataTables.js" type="text/javascript"></script>
-<script src="../../Scripts/DataTables-1.8.1/extras/TableTools/media/js/TableTools.js" type="text/javascript"></script>
-<script src="../../Scripts/DataTables-1.8.1/extras/TableTools/media/js/ZeroClipboard.js" type="text/javascript"></script>
+<script src="~/Scripts/json2.js" type="text/javascript"></script>
 
 @*These are for styling Control*@
+<link rel="stylesheet" type="text/css" href="~/Scripts/DataTables-1.10.9/css/jquery.dataTables.css" />
 
-<link href="../../Content/DataTables/extras/TableTools/media/css/TableTools.css" rel="stylesheet" type="text/css" />
-<link href="../../Content/DataTables/extras/TableTools/media/css/TableTools_JUI.css" rel="stylesheet" type="text/css" />
-<link href="../../Content/themes/base/jquery.ui.all.css" rel="stylesheet" type="text/css" />
+@*These are for DataTables*@
+<script type="text/javascript" src="~/Scripts/DataTables-1.10.9/js/jquery.dataTables.js"></script>
 
 <script type="text/javascript">
 
-
-    // This function is used fro
-    // delete selected row from Detail Table
-    // set deleted item to Edit text Boxes
     function DeleteRow() {
-
-        // Here I have used DataTables.TableTools plugin for getting selected row items
-        var oTT = TableTools.fnGetInstance('tbl'); // Get Table instance
-        var sRow = oTT.fnGetSelected(); // Get Selected Item From Table
-
-
-        // Set deleted row item to editable text boxes
-        $('#ItemName').val($.trim(sRow[0].cells[0].innerHTML.toString()));
-        $('#Qty').val(jQuery.trim(sRow[0].cells[1].innerHTML.toString()));
-        $('#UnitPrice').val($.trim(sRow[0].cells[2].innerHTML.toString()));
-
-        $('.tbl').dataTable().fnDeleteRow(sRow[0]);
+        //sostituito da inner function
     }
 
-    $(document).ready(function () {
+    $(document).ready(
+        function () {
 
-//        alert("ready inizio class -->" + $('.tbl').dataTable())
+            var table = $('#tblOrderLine').DataTable(
+                {
+                    "bLengthChange": false,
+                    "bFilter": false,
+                    "bSort": false,
+                    "bInfo": false,
+                    "language": {
+                        "decimal": ",",
+                        "thousands": ".",
+                        "lengthMenu": "_MENU_ righe per pagina",
+                        "zeroRecords": "Non ci sono righe",
+                        "info": "pagina _PAGE_ di _PAGES_",
+                        "infoEmpty": "Non ci sono righe disponibili",
+                        "emptyTable": "Tabella vuota",
+                        "infoFiltered": "(filtrati su _MAX_ righe totali)",
+                        "loadingRecords": "Sto caricando...",
+                        "processing": "Sto elaborando...",
+                        "search": "Cerca:",
+                        "paginate": {
+                            "first": "Primo",
+                            "last": "Ultimo",
+                            "next": "Successivo",
+                            "previous": "Precedente"
+                        },
+                        "aria": {
+                            "sortAscending": ": ordine ascendente",
+                            "sortDescending": ": ordine discendente"
+                        }
+                    }
+                }
+            );
 
-        // here i have used datatables.js (jQuery Data Table)
-        $('.tbl').dataTable({
-            "sDom": 'T<"clear">lfrtip',
-            "oTableTools": {
-                "aButtons": [],
-                "sRowSelect": "single"
-            },
-            "bLengthChange": false,
-            "bFilter": false,
-            "bSort": false,
-            "bInfo": false
-            //"scrollY":        '10vh',
-            //"scrollCollapse": true,
-            //"paging":         false
-        });
+            $('#tblOrderLine tbody').on('click', 'tr', function () {
+                if ($(this).hasClass('selected')) {
+                    $(this).removeClass('selected');
+                }
+                else {
+                    table.$('tr.selected').removeClass('selected');
+                    $(this).addClass('selected');
+                }
+            });
 
-        var oTable = $('.tbl').dataTable();
+            $('#btnDelRow').click(function () {
+                // prende i valori della riga selezionata e li assegna ai campi editabili prima di fare la delete della row, in modo che possa funzionare da update della riga
 
-        $('#SalesDate').datepicker({ dateFormat: 'dd/mm/yy' })
-    });
+                var row = table.row('.selected')
+
+                $('#ItemName').val(row.data()[0])
+                $('#Qty').val(row.data()[1])
+                $('#UnitPrice').val(row.data()[2])
+
+                row.remove().draw(false);
+            });
+
+            $('#btnAddRow').click(function () {
+                //todo: prendere i valori della riga ed assegnarli ai campi riga prima di fare la delete, in modo che possa funzionare da update della riga
+
+                if (!$('#ItemName').val()) {
+                    alert("itemName vuota o null o 0 o non definito");
+                    return;
+                }
+
+                // Adding item to table
+                table.row.add([
+                    $('#ItemName').val(),
+                    $('#Qty').val(),
+                    $('#UnitPrice').val()
+                ]).draw(false);
+
+                // Making Editable text empty
+                $('#ItemName').val("")
+                $('#Qty').val("")
+                $('#UnitPrice').val("")
+            });
+
+            $('#SalesDate').datepicker({
+                dateFormat: "dd/mm/yy"
+            });
+
+        }
+    );
 
 
     // this function is used to add item to list table
     function Add() {
+        //sostituito da inner function
 
-//        alert(" add item to list table - prima di dataTable.addData")
+        //// Adding item to table
+        //$('.tblOrderLine').dataTable().fnAddData([$('#ItemName').val(), $('#Qty').val(), $('#UnitPrice').val()]);
 
-        // Adding item to table
-        $('.tbl').dataTable().fnAddData([$('#ItemName').val(), $('#Qty').val(), $('#UnitPrice').val()]);
-
-        // Making Editable text empty
-        $('#ItemName').val("")
-        $('#Qty').val("")
-        $('#UnitPrice').val("")
+        //// Making Editable text empty
+        //$('#ItemName').val("")
+        //$('#Qty').val("")
+        //$('#UnitPrice').val("")
     }
 
     //This function is used for sending data(JSON Data) to SalesController
@@ -111,20 +147,22 @@ End Code
         var headId = typeof salesmain.SalesId == "undefined" ? 0 : salesmain.SalesId;
 
         // Getting Table Data from where we will fetch Sales Sub Record
-        var oTable = $('.tbl').dataTable().fnGetData();
+        var oTable = $('#tblOrderLine').DataTable();
+        var data = oTable.rows().data()  //matrice
 
-        for (var i = 0; i < oTable.length; i++) {
+        for (var i = 0; i < data.length; i++) {
 
             salessub.SalesId = headId;
             // Set SalesSub individual Value
-            salessub.ItemName = oTable[i][0];
-            salessub.Qty = oTable[i][1];
-            salessub.UnitPrice = oTable[i][2];
+            salessub.ItemName = data[i][0];
+            salessub.Qty = data[i][1];
+            salessub.UnitPrice = data[i][2];
             // adding to SalesMain.SalesSub List Item
             salesmain.SalesSubs.push(salessub);
             salessub = { "ItemName": "", "Qty": "", "UnitPrice": "" };
         }
         // Step 1: Ends Here
+
 
         //alert(JSON.stringify(salesmain))
 
@@ -133,11 +171,11 @@ End Code
         // url: 'http://localhost:10524/Sales/Create'
 
         $.ajax({
-url:                '/Sales/Create',
+            url: '/Sales/Create',
             data: JSON.stringify(salesmain),
-type:               'POST',
-contentType:        'application/json;',
-dataType:           'json',
+            type: 'POST',
+            contentType: 'application/json;',
+            dataType: 'json',
             success: function (result) {
                 if (result.Success == "1") {
                     window.location.href = "/Sales/index";
@@ -202,32 +240,31 @@ end section
         <legend>Add Item</legend>
 
         <label>ItemName :</label>
-@*         @Html.TextBox("ItemName", "", New With {.class = "css-class", .onclick = "alert('demo')"})*@
             @Html.TextBox("ItemName")
         <label>Qty :</label>
             @Html.TextBox("Qty")
         <label>Sales Price :</label>
             @Html.TextBox("UnitPrice")
-        <input type="button" value="Add" onclick="Add()" />
+        <input type="button" id="btnAddRow" value="Add" onclick="Add()" />
         <br />
         <br />
 
-        <table class="tbl" id="tbl">
-            <thead><tr><th>ItemName</th> <th>Quantity</th> <th>Unit Price</th></tr></thead>
-            <tbody>
-           @If (Not IsNothing(Model)) Then
-                   @For Each item In Model.SalesSubs
-                        @<tr>
-                        <td>@Html.DisplayTextFor(Function(i) item.ItemName)</td>
-                        <td>@Html.DisplayTextFor(Function(i) item.Qty)</td>
-                        <td>@Html.DisplayTextFor(Function(i) item.UnitPrice)</td>
-                        </tr>
-                   Next
+         <table class="display" id="tblOrderLine">
+             <thead><tr><th>ItemName</th> <th>Quantity</th> <th>Unit Price</th></tr></thead>
+             <tbody>
+                 @If (Not IsNothing(Model)) Then
+                     @For Each item In Model.SalesSubs
+                         @<tr>
+                             <td>@Html.DisplayTextFor(Function(i) item.ItemName)</td>
+                             <td>@Html.DisplayTextFor(Function(i) item.Qty)</td>
+                             <td>@Html.DisplayTextFor(Function(i) item.UnitPrice)</td>
+                         </tr>
+                     Next
                End If
-           </tbody>
-       </table>
+             </tbody>
+         </table>
        <br/>
-       <input type="button" value="Delete Selected Row" onclick="DeleteRow()" />
+         <input type="button" id="btnDelRow" value="Delete Selected Row" onclick="DeleteRow()" />
     </fieldset>
 
     @<input type="button" value="Salva Ordine" onclick="Sales_save()" />
